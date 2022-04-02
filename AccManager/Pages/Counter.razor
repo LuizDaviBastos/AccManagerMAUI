@@ -1,4 +1,9 @@
 ﻿@page "/counter"
+@using AccManager.Data.Models;
+@using AccManager.Data.MongoServicoGenerico;
+@using X.PagedList;
+
+@inject IMongoServico<Contas> mongoContas
 
 <h1>Counter</h1>
 
@@ -6,8 +11,26 @@
 
 <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
 
+<ul>
+	@if(contas != null)
+	{
+		foreach(var conta in contas)
+		{
+			<li>@conta.email</li>	
+		}
+	}
+	
+</ul>
+
 @code {
 	private int currentCount = 0;
+	public IPagedList<Contas> contas = null;
+
+	protected override async Task OnInitializedAsync()
+	{
+		base.OnInitialized();
+		contas = (IPagedList<Contas>)mongoContas.ListarPaginado(1);
+	}
 
 	private void IncrementCount()
 	{

@@ -15,7 +15,7 @@
 		<ApplicationTitle>AccManager</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.accmanager</ApplicationId>
+		<ApplicationId>AccManager</ApplicationId>
 
 		<!-- Versions -->
 		<ApplicationVersion>1</ApplicationVersion>
@@ -44,12 +44,6 @@
 		<MauiFont Include="Resources\Fonts\*" />
 	</ItemGroup>
 
-	<ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
-		<!-- Required - WinUI does not yet have buildTransitive for everything -->
-		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.0.0" />
-		<PackageReference Include="Microsoft.Graphics.Win2D" Version="1.0.0.30" />
-	</ItemGroup>
-
 	<PropertyGroup Condition="$(TargetFramework.Contains('-windows'))">
 		<OutputType>WinExe</OutputType>
 		<RuntimeIdentifier>win10-x64</RuntimeIdentifier>
@@ -60,11 +54,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <EmbeddedResource Include="appsettings.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </EmbeddedResource>
 	  <ProjectReference Include="..\AccManager.Data\AccManager.Data.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <EmbeddedResource Include="appsettings.json"></EmbeddedResource>
 	  <Content Update="appsettings.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Content>

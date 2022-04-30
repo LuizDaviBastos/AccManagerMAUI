@@ -5,7 +5,6 @@ namespace AccManager.Data.Models.ModelSettings
     {
         public string DataBaseName { get; set; }
         public string ConnectionString { get; set; }
-        public string ContasCollectionName { get; set; }
         public string SizPag { get; set; }
     }
 
@@ -13,7 +12,6 @@ namespace AccManager.Data.Models.ModelSettings
     {
         public string DataBaseName { get; set; }
         public string ConnectionString { get; set; }
-        public string ContasCollectionName { get; set; }
         public string SizPag { get; set; }
     }
 }

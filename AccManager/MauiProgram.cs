@@ -1,64 +1,56 @@
-﻿using Microsoft.AspNetCore.Components.WebView.Maui;
-using AccManager.Data;
-using AccManager.Data.MongoServicoGenerico;
-using AccManager.Data.Models;
-using MongoDB.Driver;
-using AccManager.Data.Models.ModelSettings;
+﻿using AccManager.Data;
 
-namespace AccManager 
+namespace AccManager
 {
-	using AccManager.Data.Models;
-    using Microsoft.Extensions.Configuration;
-    using Microsoft.Extensions.FileProviders;
-    using Microsoft.Extensions.Options;
+    using AccManager.Data.Models;
+    using AccManager.Data.Models.ModelSettings;
+    using AccManager.Data.MongoServicoGenerico;
     using System.Reflection;
 
     public static class MauiProgram
-	{
-		private static IConfiguration Configuration { get; set; }
+    {
 
-		public static MauiApp CreateMauiApp()
-		{
-			var builder = MauiApp.CreateBuilder();
-			builder
-				.RegisterBlazorMauiWebView()
-				.UseMauiApp<App>()
-				.ConfigureFonts(fonts =>
-				{
-					fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-				})/*
-			.Host
-			.ConfigureAppConfiguration((app, config) =>
-			{
-				var assembly = typeof(App).GetTypeInfo().Assembly;
-				var configuration = config.AddJsonFile(new EmbeddedFileProvider(assembly), "appsettings.json", optional: false, false);
-				Configuration = configuration.Build();
-			})*/;
+        public static MauiApp CreateMauiApp()
+        {
+            var builder = MauiApp.CreateBuilder();
+            builder
+                .UseMauiApp<App>()
+                .ConfigureFonts(fonts =>
+                {
+                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                });
 
-			builder.Services.AddBlazorWebView();
-			builder.Services.AddSingleton<WeatherForecastService>();
+            builder.Services.AddMauiBlazorWebView();
+            builder.Services.AddBlazorWebView();
+            builder.Services.AddSingleton<WeatherForecastService>();
 
             var a = Assembly.GetExecutingAssembly();
-            using var stream = a.GetManifestResourceStream("AccManager.appsettings.json");
+            var stream = a.GetManifestResourceStream("AccManager.appsettings.json");
+            stream.Position = 0;
 
-            Configuration = new ConfigurationBuilder().AddJsonStream(stream).Build();
-            builder.Configuration.AddConfiguration(Configuration);
+            StreamReader reader = new StreamReader(stream);
+            string json = reader.ReadToEnd();
 
-			builder.Services.Configure<EnvioDeContasMongoSettings>(Configuration.GetSection(nameof(EnvioDeContasMongoSettings)));
-			builder.Services.AddSingleton<IEnvioDeContasMongoSettings>(sp => sp.GetRequiredService<IOptions<EnvioDeContasMongoSettings>>().Value);
+            var jobj = JObject.Parse(json);
+            var mongoSettings = jobj.GetValue("EnvioDeContasMongoSettings");
+            var smtpSettings = jobj.GetValue("ConfiguracaoSmtp");
 
-			builder.Services.AddScoped<IMongoServico<HistoricoEnvio>, MongoServico<HistoricoEnvio>>();
-			builder.Services.AddScoped<IMongoServico<Contas>, MongoServico<Contas>>();
-			builder.Services.AddScoped<IMongoServico<Plataforma>, MongoServico<Plataforma>>();
-			builder.Services.AddScoped<IMongoServico<Arquivo>, MongoServico<Arquivo>>();
-			builder.Services.AddScoped<IMongoServico<Layout>, MongoServico<Layout>>();
-			builder.Services.AddScoped<MongoClient>(sp => new MongoClient(Configuration.GetSection(nameof(EnvioDeContasMongoSettings))["ConnectionString"]));
+            var mongoValues = mongoSettings.ToObject<EnvioDeContasMongoSettings>();
 
-			builder.Services.AddScoped<IMongoServico<Contas>, MongoServico<Contas>>();
+            builder.Services.AddSingleton<IEnvioDeContasMongoSettings>(x => mongoValues);
 
-			return builder.Build();
-		}
-	}
+            builder.Services.AddScoped<IMongoServico<HistoricoEnvio>, MongoServico<HistoricoEnvio>>();
+            builder.Services.AddScoped<IMongoServico<Contas>, MongoServico<Contas>>();
+            builder.Services.AddScoped<IMongoServico<Plataforma>, MongoServico<Plataforma>>();
+            builder.Services.AddScoped<IMongoServico<Arquivo>, MongoServico<Arquivo>>();
+            builder.Services.AddScoped<IMongoServico<Layout>, MongoServico<Layout>>();
+            builder.Services.AddScoped<MongoClient>(sp => new MongoClient(mongoValues.ConnectionString));
+
+            builder.Services.AddScoped<IMongoServico<Contas>, MongoServico<Contas>>();
+
+            return builder.Build();
+        }
+    }
 }
 
 
